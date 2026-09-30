@@ -85,7 +85,7 @@
         
         <div class="info-box">
             <span class="label">Kelas</span>
-            {{ $kelas }}
+            {{$kelas}}
         </div>
         
         <div class="info-box">
