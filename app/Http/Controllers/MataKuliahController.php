@@ -23,41 +23,41 @@ class MataKuliahController extends Controller
 
     public function store(Request $request)
     {
-        MataKuliah::create([
-            'nama_mk' => $request->input('nama_mk'),
-            'sks' => $request->input('sks'),
+        $validated = $request->validate([
+            'nama_mk' => ['required', 'string', 'max:100'],
+            'sks' => ['required', 'integer', 'min:1', 'max:6'],
         ]);
 
-        return redirect()->to('/matakuliah');
+        MataKuliah::create($validated);
+
+        return redirect()->route('matakuliah.index')
+            ->with('success', 'Mata kuliah berhasil ditambahkan!');
     }
 
     public function edit($id)
-{
-    $mk = MataKuliah::findOrFail($id);
-    return view('edit_mk', ['title' => 'Edit Mata Kuliah', 'mk' => $mk]);
-}
+    {
+        $mk = MataKuliah::findOrFail($id);
+        return view('edit_mk', ['title' => 'Edit Mata Kuliah', 'mk' => $mk]);
+    }
 
-public function update(Request $request, $id)
-{
-    $request->validate([
-        'nama_mk' => 'required',
-        'sks' => 'required|integer|min:1|max:6',
-    ]);
+    public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'nama_mk' => ['required', 'string', 'max:100'],
+            'sks' => ['required', 'integer', 'min:1', 'max:6'],
+        ]);
 
-    $mk = MataKuliah::findOrFail($id);
-    $mk->update([
-        'nama_mk' => $request->input('nama_mk'),
-        'sks' => $request->input('sks'),
-    ]);
+        $mk = MataKuliah::findOrFail($id);
+        $mk->update($validated);
 
-    return redirect()->to('/mata-kuliah')->with('success', 'Data berhasil diperbarui!');
-}
+        return redirect()->to('/matakuliah')->with('success', 'Data berhasil diperbarui!');
+    }
 
-public function destroy($id)
-{
-    $mk = MataKuliah::findOrFail($id);
-    $mk->delete();
+    public function destroy($id)
+    {
+        $mk = MataKuliah::findOrFail($id);
+        $mk->delete();
 
-    return redirect()->to('/mata-kuliah')->with('success', 'Data berhasil dihapus!');
-}
+        return redirect()->to('/matakuliah')->with('success', 'Data berhasil dihapus!');
+    }
 }

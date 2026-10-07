@@ -2,71 +2,70 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Kelas;
-use App\Models\UserModel;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
-    public $userModel;
-    public $kelasModel;
-
-    public function __construct()
-    {
-        $this->userModel = new UserModel();
-        $this->kelasModel = new Kelas();
-    }
-
     public function index()
     {
-        $data = [
+        return view('list_user', [
             'title' => 'List User',
-            'users' => $this->userModel->getUser(),
-        ];
-        return view('list_user', $data);
+            'users' => User::query()->latest()->get(),
+        ]);
     }
 
     public function create()
     {
-        $kelas = $this->kelasModel->getKelas();
-        $data = [
-            'title' => 'Create User',
-            'kelas' => $kelas,
-        ];
-        return view('create_user', $data);
+        return view('create_user', ['title' => 'Create User']);
     }
 
     public function store(Request $request)
     {
-        $this->userModel->create([
-            'nama' => $request->input('nama'),
-            'nim' => $request->input('npm'),
-            'kelas_id' => $request->input('kelas_id'),
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8'],
         ]);
 
-        return redirect()->to('/user');
+        User::create($validated);
+
+        return redirect()->route('user.index')->with('success', 'Data mahasiswa berhasil ditambahkan!');
     }
 
     public function edit($id)
     {
         $user = User::findOrFail($id);
-        return view('edit_user', ['title' => 'Edit User', 'user' => $user]);
+
+        return view('edit_user', [
+            'title' => 'Edit User',
+            'user' => $user,
+        ]);
     }
 
     public function update(Request $request, $id)
-{
-    $request->validate([
-        'name' => 'required',
-        'email' => 'required|email',
-    ]);
+    {
+        $user = User::findOrFail($id);
 
-    $user = User::findOrFail($id);
-    $user->update([
-        'name' => $request->input('name'),
-        'email' => $request->input('email'),
-    ]);
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($user->id),
+            ],
+            'password' => ['nullable', 'string', 'min:8'],
+        ]);
 
-    return redirect()->to('/user')->with('success', 'Data mahasiswa berhasil diperbarui!');
+        if (blank($validated['password'] ?? null)) {
+            unset($validated['password']);
+        }
+
+        $user->update($validated);
+
+        return redirect()->route('user.index')->with('success', 'Data mahasiswa berhasil diperbarui!');
     }
 
     public function destroy($id)
@@ -74,6 +73,6 @@ class UserController extends Controller
         $user = User::findOrFail($id);
         $user->delete();
 
-    return redirect()->to('/user')->with('success', 'Data mahasiswa berhasil dihapus!');
+        return redirect()->route('user.index')->with('success', 'Data mahasiswa berhasil dihapus!');
     }
 }
