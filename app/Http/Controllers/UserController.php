@@ -46,4 +46,34 @@ class UserController extends Controller
 
         return redirect()->to('/user');
     }
+
+    public function edit($id)
+    {
+        $user = User::findOrFail($id);
+        return view('edit_user', ['title' => 'Edit User', 'user' => $user]);
+    }
+
+    public function update(Request $request, $id)
+{
+    $request->validate([
+        'name' => 'required',
+        'email' => 'required|email',
+    ]);
+
+    $user = User::findOrFail($id);
+    $user->update([
+        'name' => $request->input('name'),
+        'email' => $request->input('email'),
+    ]);
+
+    return redirect()->to('/user')->with('success', 'Data mahasiswa berhasil diperbarui!');
+    }
+
+    public function destroy($id)
+    {
+        $user = User::findOrFail($id);
+        $user->delete();
+
+    return redirect()->to('/user')->with('success', 'Data mahasiswa berhasil dihapus!');
+    }
 }
